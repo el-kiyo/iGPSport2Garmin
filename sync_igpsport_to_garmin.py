@@ -13,7 +13,7 @@ import random
 import datetime
 import requests
 import tempfile
-import garth
+from garminconnect import Garmin
 from pathlib import Path
 import logging
 from dateutil.parser import parse
