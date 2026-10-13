@@ -188,6 +188,10 @@ class GarminClient:
         if self.authenticated:
             return True
 
+        if self.rate_limited:
+            logger.error("Garmin rate limit already reached. Not retrying.")
+            return False
+
         try:
             logger.info("Loading saved Garmin tokens or logging in")
             self.api.login(GARMIN_SESSION_DIR)
