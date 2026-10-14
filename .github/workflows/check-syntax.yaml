@@ -15,5 +15,13 @@ jobs:
         with:
           python-version: '3.12'
 
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
       - name: Check Python syntax
         run: python -m py_compile sync_igpsport_to_garmin.py
+
+      - name: Check Garmin library
+        run: |
+          python -c "from garminconnect import Garmin; print('Garmin library imported successfully')"
+          python -c "from garminconnect import Garmin; print('login:', hasattr(Garmin, 'login')); print('get_activities:', hasattr(Garmin, 'get_activities')); print('upload_activity:', hasattr(Garmin, 'upload_activity'))"
