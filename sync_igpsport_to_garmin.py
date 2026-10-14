@@ -526,8 +526,9 @@ def main():
         logger.error("Failed to authenticate with Garmin")
         return
 
-    sync_count = 0
+        sync_count = 0
     latest_synced_date = None
+    had_failures = False
 
     # Download and upload activities in a batch
     for activity_info in activities_to_sync:
@@ -538,43 +539,60 @@ def main():
         # Download the FIT file
         fit_data = igpsport_client.download_fit_file(fit_url)
         if not fit_data:
-            logger.warning(f"Failed to download FIT file for activity {activity_id}")
+            logger.warning(
+                f"Failed to download FIT file for activity {activity_id}"
+            )
+            had_failures = True
             continue
 
         # Upload to Garmin
         result = garmin_client.upload_fit(fit_data)
+
         if garmin_client.rate_limited:
-            logger.error("Garmin rate limit reached. Stopping this sync run.")
+            logger.error(
+                "Garmin rate limit reached. Stopping this sync run."
+            )
+            had_failures = True
             break
+
         if result:
-            logger.info(f"Successfully uploaded activity {activity_id} to Garmin")
+            logger.info(
+                f"Successfully uploaded activity {activity_id} to Garmin"
+            )
             sync_count += 1
 
-            # Update the latest synced date
-            if latest_synced_date is None or start_time > latest_synced_date:
+            if (
+                latest_synced_date is None
+                or start_time > latest_synced_date
+            ):
                 latest_synced_date = start_time
 
-            # Sleep to avoid rate limiting
             time.sleep(2)
         else:
             logger.warning(
-                f"Failed to upload activity {activity_id} to Garmin after all retry attempts"
+                f"Failed to upload activity {activity_id} to Garmin"
             )
+            had_failures = True
 
-        # Save the latest synced activity date after each successful upload
-        # This means if the script stops halfway, we'll still have saved some progress
-        if latest_synced_date and sync_count > 0:
-            save_last_sync_date(latest_synced_date)
-
-    # Final update of the sync date
-    if latest_synced_date and sync_count > 0:
+    # Advance the checkpoint only when every activity succeeded
+    if (
+        not had_failures
+        and sync_count == len(activities_to_sync)
+        and latest_synced_date is not None
+    ):
         save_last_sync_date(latest_synced_date)
-        logger.info(f"Updated last sync date to: {latest_synced_date}")
+        logger.info(
+            f"Updated last sync date to: {latest_synced_date}"
+        )
     else:
-        logger.info("No activities were synced, last sync date remains unchanged")
+        logger.warning(
+            "Some activities were not confirmed as uploaded. "
+            "Keeping the previous sync date to avoid losing activities."
+        )
 
     logger.info(
-        f"Sync completed: {sync_count} activities uploaded, {len(activities_to_sync) - sync_count} activities failed"
+        f"Sync completed: {sync_count} activities uploaded, "
+        f"{len(activities_to_sync) - sync_count} activities not confirmed"
     )
 
 
