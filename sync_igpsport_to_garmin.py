@@ -311,14 +311,23 @@ def load_last_sync_date() -> datetime.datetime:
         if os.path.exists(LAST_SYNC_FILE):
             with open(LAST_SYNC_FILE, "r") as f:
                 data = json.load(f)
-                return datetime.datetime.fromisoformat(data["last_sync_date"])
-        else:
-            # Default to 30 days ago if no sync file exists
-            return datetime.datetime.now() - datetime.timedelta(days=30)
+
+            if not isinstance(data, dict) or "last_sync_date" not in data:
+                logger.error(
+                    "No valid last sync date found. "
+                    "Stopping to avoid syncing old activities."
+                )
+                raise ValueError("Missing last_sync_date")
+
+            return datetime.datetime.fromisoformat(data["last_sync_date"])
+
+        raise FileNotFoundError(
+            f"Sync control file not found: {LAST_SYNC_FILE}"
+        )
+
     except Exception as e:
-        logger.error(f"Error loading last sync date: {e}")
-        # Default to 30 days ago on error
-        return datetime.datetime.now() - datetime.timedelta(days=30)
+        logger.error(f"Cannot load last sync date safely: {e}")
+        raise
 
 
 def save_last_sync_date(sync_date: datetime.datetime) -> None:
