@@ -2,13 +2,11 @@ name: iGPSport to Garmin Sync
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '*/20 * * * *'
 
 jobs:
   sync:
     runs-on: ubuntu-latest
-        permissions:
+    permissions:
       contents: write
     concurrency:
       group: igpsport-garmin-sync
