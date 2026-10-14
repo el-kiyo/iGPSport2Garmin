@@ -287,10 +287,11 @@ class GarminClient:
 
                 if "409" in error or "conflict" in error:
                     logger.warning(
-                        f"Activity conflict; skipping "
+                        f"Activity already exists in Garmin; "
+                        f"treating as resolved: "
                         f"{activity_name or 'Unknown Activity'}"
                     )
-                    return None
+                    return {"duplicate": True}
 
                 if attempt >= self.max_retries:
                     logger.error("All upload attempts failed")
