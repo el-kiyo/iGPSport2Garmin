@@ -526,7 +526,7 @@ def main():
         logger.error("Failed to authenticate with Garmin")
         return
 
-        sync_count = 0
+    sync_count = 0
     latest_synced_date = None
     had_failures = False
 
