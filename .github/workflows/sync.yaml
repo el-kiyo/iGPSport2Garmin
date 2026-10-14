@@ -53,5 +53,20 @@ jobs:
           GARMIN_PASSWORD: ${{ secrets.GARMIN_PASSWORD }}
           GARMIN_DOMAIN: ${{ secrets.GARMIN_DOMAIN || 'garmin.com' }}
         run: python sync_igpsport_to_garmin.py
+
+      - name: Save last sync date
+        run: |
+          if [ -f last_sync_date.json ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add last_sync_date.json
+            if ! git diff --cached --quiet; then
+              git commit -m "Update last sync date [skip ci]"
+              git push
+            fi
+          else
+            echo "last_sync_date.json not found"
+            exit 1
+          fi
         
       
