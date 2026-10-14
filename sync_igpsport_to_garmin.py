@@ -178,10 +178,9 @@ class GarminClient:
         self.authenticated = False
         self.rate_limited = False
         self.api = Garmin(
-            self.email,
-            self.password,
-            domain=self.domain,
-        )
+    self.email,
+    self.password,
+)
 
     def authenticate(self, force: bool = False) -> bool:
         """Load saved tokens or authenticate once with Garmin."""
